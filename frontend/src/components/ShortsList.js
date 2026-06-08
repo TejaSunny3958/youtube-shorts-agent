@@ -28,7 +28,9 @@ function UploadButton({ s, videoTitle }) {
     try {
       // Check if we're already authenticated
       const authCheck = await axios.get(
-        `${API}/api/youtube/auth` {
+        `${API}/api/youtube/auth`
+      );
+      if (authCheck.data.auth_url) {
         // Need to auth first
         window.open(authCheck.data.auth_url, "_blank");
         setErrMsg("Opened YouTube login in a new tab. Re-click Upload after authorising.");
