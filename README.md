@@ -167,13 +167,25 @@ Shorts/
 ```bash
 # Backend
 cd backend
-..\short_venv\Scripts\python app.py        # Windows
-# → http://localhost:5000
+python -m venv venv
 
-# Frontend
+# Windows
+venv\Scripts\activate
+
+# Install PyTorch CPU first (small ~200MB build, not the 2GB GPU version)
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# Install all other dependencies
+pip install -r requirements.txt
+
+# Create your .env file
+copy .env.example .env
+# → Edit .env and add your GOOGLE_API_KEY
+
+python app.py        # → http://localhost:5000
+
+# Frontend (in a separate terminal)
 cd frontend
-npm start
-# → http://localhost:3000
+npm install
+npm start            # → http://localhost:3000
 ```
-
-Set `GOOGLE_API_KEY` in `backend/.env` to enable Gemini AI features.
