@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environment
+short_venv/
+venv/
+.venv/
+env/
+
+# Environment / secrets
+backend/.env
+backend/client_secrets.json
+backend/token.json
+
+# Outputs (generated files — don't commit)
+backend/outputs/downloads/
+backend/outputs/shorts/
+
+# Node
+frontend/node_modules/
+frontend/build/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/

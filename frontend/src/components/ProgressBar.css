@@ -1,0 +1,109 @@
+.progress-container {
+  max-width: 680px;
+  margin: 28px auto;
+  padding: 28px 32px;
+  background: rgba(14, 14, 35, 0.72);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  text-align: center;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+}
+
+/* ── Step indicators ── */
+.progress-steps {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 24px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #2a2a4a;
+  border: 2px solid #3a3a5c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.progress-step.done .step-circle {
+  background: #16213e;
+  border-color: #00d4aa;
+  color: #00d4aa;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.progress-step.active .step-circle {
+  background: #e94560;
+  border-color: #e94560;
+  box-shadow: 0 0 14px rgba(233, 69, 96, 0.55);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(233, 69, 96, 0.45); }
+  50%       { box-shadow: 0 0 22px rgba(233, 69, 96, 0.85); }
+}
+
+.step-label {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 6px;
+  white-space: nowrap;
+}
+
+.progress-step.done  .step-label { color: #00d4aa; }
+.progress-step.active .step-label { color: #e94560; font-weight: 600; }
+
+.step-line {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: #3a3a5c;
+  z-index: 0;
+  transition: background 0.3s ease;
+}
+
+.step-line.done { background: #00d4aa; }
+
+/* ── Fill bar ── */
+.progress-bar-track {
+  height: 8px;
+  background: #2a2a4a;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e94560, #00d4aa);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* ── Message ── */
+.progress-message {
+  color: #ccc;
+  font-size: 14px;
+  margin: 0;
+  min-height: 20px;
+}

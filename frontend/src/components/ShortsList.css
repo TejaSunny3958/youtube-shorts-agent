@@ -1,0 +1,445 @@
+.shorts-section {
+  margin-top: 8px;
+}
+
+.shorts-heading {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #fff;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shorts-heading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(233,69,96,0.4), transparent);
+}
+
+/* ── Grid ── */
+.shorts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 22px;
+}
+
+/* ── Card ── */
+.short-card {
+  background: rgba(18, 18, 36, 0.75);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+}
+
+.short-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(233,69,96,0.45);
+  box-shadow: 0 8px 32px rgba(233,69,96,0.15);
+}
+
+.short-card.best {
+  border-color: rgba(255,200,0,0.5);
+  box-shadow: 0 0 24px rgba(255,200,0,0.12);
+  background: rgba(26, 22, 4, 0.8);
+}
+
+/* ── Best badge ── */
+.best-badge {
+  padding: 6px 14px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #ffcc00;
+  background: rgba(255,200,0,0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,200,0,0.2);
+}
+
+/* ── Effect badge overlay ── */
+.effect-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.65);
+  color: #e0e0e0;
+  font-size: 0.65rem;
+  padding: 3px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+/* ── Portrait 9:16 video wrapper ── */
+.video-wrapper {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  background: #000;
+  overflow: hidden;
+  position: relative;
+}
+
+.short-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Info panel ── */
+.short-info {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: rgba(0,0,0,0.25);
+}
+
+.short-header {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.short-rank {
+  font-size: 1rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff4e4e, #e94560);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  flex-shrink: 0;
+}
+
+.short-label {
+  font-size: 0.82rem;
+  color: #ccc;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* AI-generated title */
+.short-ai-title {
+  font-size: 0.83rem;
+  font-weight: 600;
+  background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.35;
+  margin: 2px 0 4px;
+}
+
+.ai-icon {
+  font-size: 0.75rem;
+  -webkit-text-fill-color: #a78bfa;
+}
+
+.gemini-tag {
+  background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(96,165,250,0.18)) !important;
+  border: 1px solid rgba(167,139,250,0.4) !important;
+  color: #c4b5fd !important;
+}
+
+.short-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.72rem;
+}
+
+.short-meta span {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 2px 8px;
+  color: #9999bb;
+}
+
+/* ── Action buttons ── */
+.short-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.short-download {
+  display: block;
+  padding: 8px 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #e94560, #c73652);
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: 0 2px 10px rgba(233,69,96,0.3);
+}
+
+.short-download:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+/* ── YouTube upload ── */
+.yt-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.yt-upload-btn {
+  display: block;
+  padding: 8px 0;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s, transform 0.15s;
+  text-decoration: none;
+  background: linear-gradient(135deg, #ff0000, #cc0000);
+  color: #fff;
+  width: 100%;
+  box-shadow: 0 2px 10px rgba(255,0,0,0.25);
+}
+
+.yt-upload-btn:hover:not(:disabled) {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.yt-upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.yt-upload-btn.done {
+  background: linear-gradient(135deg, #1db954, #15883d);
+  box-shadow: 0 2px 10px rgba(29,185,84,0.25);
+}
+
+.yt-upload-error {
+  font-size: 0.7rem;
+  color: #ff9999;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── Music toggle ── */
+.music-toggle-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.music-toggle-btn {
+  display: block;
+  padding: 8px 0;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.music-toggle-btn.on {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(124,58,237,0.3);
+}
+
+.music-toggle-btn.off {
+  background: rgba(255,255,255,0.08);
+  color: #aaa;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.music-toggle-btn.working {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.music-toggle-btn:hover:not(:disabled):not(.working) {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.music-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0 2px;
+}
+
+.volume-label {
+  font-size: 0.8rem;
+}
+
+.volume-slider {
+  flex: 1;
+  accent-color: #7c3aed;
+  height: 4px;
+  cursor: pointer;
+}
+
+.volume-pct {
+  font-size: 0.72rem;
+  color: #aaa;
+  min-width: 28px;
+  text-align: right;
+}
+
+.short-card.best {
+  border-color: #ffcc00;
+  background: #1a1800;
+}
+
+.best-badge {
+  padding: 5px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffcc00;
+  background: #2a2200;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Portrait 9:16 video container */
+.video-wrapper {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  background: #000;
+  overflow: hidden;
+}
+
+.short-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.short-info {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.short-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.short-rank {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ff4e4e;
+  flex-shrink: 0;
+}
+
+.short-label {
+  font-size: 0.88rem;
+  color: #ddd;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.short-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 0.78rem;
+  color: #777;
+}
+
+.short-download {
+  display: block;
+  margin-top: 4px;
+  padding: 7px 0;
+  border-radius: 8px;
+  background: #ff4e4e;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.short-download:hover {
+  background: #e03a3a;
+}
+
+/* ── YouTube upload button ── */
+.short-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.yt-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.yt-upload-btn {
+  display: block;
+  padding: 7px 0;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, opacity 0.2s;
+  text-decoration: none;
+  background: #ff0000;
+  color: #fff;
+  width: 100%;
+}
+
+.yt-upload-btn:hover:not(:disabled) {
+  background: #cc0000;
+}
+
+.yt-upload-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.yt-upload-btn.done {
+  background: #1db954;
+}
+
+.yt-upload-error {
+  font-size: 0.72rem;
+  color: #ff9999;
+  margin: 0;
+  line-height: 1.3;
+}
+

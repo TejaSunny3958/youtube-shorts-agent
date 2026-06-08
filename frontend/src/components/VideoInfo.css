@@ -1,0 +1,20 @@
+.video-info {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.vi-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.vi-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 0.9rem;
+  color: #aaa;
+}
