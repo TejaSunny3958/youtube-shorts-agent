@@ -16,14 +16,15 @@ function formatDate(iso) {
   }
 }
 
+const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export default function History({ onLoad }) {
-  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingId, setLoadingId] = useState(null);
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/history")
+      .get(`${API}/api/history`)
       .then((r) => setItems(r.data))
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
@@ -33,7 +34,7 @@ export default function History({ onLoad }) {
     setLoadingId(videoId);
     try {
       const r = await axios.get(
-        `http://localhost:5000/api/history/${videoId}`
+        `${API}/api/history/${videoId}`
       );
       onLoad(r.data);
     } catch {

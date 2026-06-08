@@ -19,6 +19,7 @@ env/
 backend/.env
 backend/client_secrets.json
 backend/token.json
+frontend/.env
 
 # Outputs (generated files — don't commit)
 backend/outputs/downloads/

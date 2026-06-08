@@ -7,6 +7,8 @@ import ProgressBar from "./components/ProgressBar";
 import History from "./components/History";
 import "./App.css";
 
+const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 const POLL_MS = 1500;
 
 export default function App() {
@@ -33,7 +35,7 @@ export default function App() {
     pollRef.current = setInterval(async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:5000/api/status/${taskId}`
+          `${API}/api/status/${taskId}`
         );
 
         setProgress({
@@ -69,7 +71,7 @@ export default function App() {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:5000/api/process", { url }
+        `${API}/api/process`, { url }
       );
       setTaskId(data.task_id);
     } catch (err) {

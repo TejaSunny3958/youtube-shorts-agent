@@ -53,8 +53,6 @@ class VideoDownloader:
             "outtmpl": os.path.join(self.output_dir, "%(id)s.%(ext)s"),
             "merge_output_format": "mp4",
             "ffmpeg_location": _ffmpeg_bin(),
-            # Use browser cookies to bypass YouTube bot-detection
-            "cookiesfrombrowser": ("chrome",),
             "quiet": True,
             "no_warnings": True,
         }

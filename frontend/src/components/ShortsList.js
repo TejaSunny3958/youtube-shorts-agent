@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./ShortsList.css";
 
+const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 const EFFECT_LABELS = {
   cinematic_cold: "❄️ Cinematic Cold",
   warm_glow:      "🔥 Warm Glow",
@@ -26,9 +28,7 @@ function UploadButton({ s, videoTitle }) {
     try {
       // Check if we're already authenticated
       const authCheck = await axios.get(
-        "http://localhost:5000/api/youtube/auth"
-      );
-      if (authCheck.data.auth_url) {
+        `${API}/api/youtube/auth` {
         // Need to auth first
         window.open(authCheck.data.auth_url, "_blank");
         setErrMsg("Opened YouTube login in a new tab. Re-click Upload after authorising.");
@@ -47,7 +47,7 @@ function UploadButton({ s, videoTitle }) {
     setState("uploading");
     try {
       const { data } = await axios.post(
-        "http://localhost:5000/api/youtube/upload",
+        `${API}/api/youtube/upload`,
         { clip_file: s.clip_file, title: shortTitle }
       );
       setYtUrl(data.url);
@@ -57,7 +57,7 @@ function UploadButton({ s, videoTitle }) {
         // Not authenticated
         try {
           const { data } = await axios.get(
-            "http://localhost:5000/api/youtube/auth"
+            `${API}/api/youtube/auth`
           );
           if (data.auth_url) {
             window.open(data.auth_url, "_blank");
@@ -111,7 +111,7 @@ function MusicToggle({ s, onRemixed }) {
     setState("working");
     setErrMsg("");
     try {
-      const { data } = await axios.post("http://localhost:5000/api/remix", {
+      const { data } = await axios.post(`${API}/api/remix`, {
         clip_file: s.clip_file,
         add_music: !hasMusic,
         music_volume: volume / 100,
@@ -158,7 +158,7 @@ function ShortCard({ s, videoTitle }) {
   const [clipData, setClipData] = useState(s);
 
   const videoUrl = clipData.download_url
-    ? `http://localhost:5000${clipData.download_url}`
+    ? `${API}${clipData.download_url}`
     : null;
 
   function handleRemixed(newData, addedMusic) {
