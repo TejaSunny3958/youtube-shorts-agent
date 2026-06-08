@@ -26,6 +26,22 @@ export default function App() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
+  // ── Local video upload task_id event ──────────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      setStatus("processing");
+      setVideoData(null);
+      setError("");
+      setProgress({ stage: "queued", message: "Queued…", percent: 0 });
+      setView("home");
+      setLastUrl("");
+      setTaskId(e.detail);
+    };
+    window.addEventListener("localVideoTaskId", handler);
+    return () => window.removeEventListener("localVideoTaskId", handler);
+  }, []);
+
   // ── Start polling when taskId changes ─────────────────────────────────────
   useEffect(() => {
     if (!taskId) return;

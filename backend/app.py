@@ -4,6 +4,8 @@ import time
 import uuid
 import threading
 import logging
+import subprocess
+import imageio_ffmpeg
 
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
@@ -97,134 +99,171 @@ def _process_task(task_id: str, url: str):
         prog("download", "Downloading video…", 5)
         downloader = VideoDownloader(output_dir=DOWNLOADS_DIR)
         video_info = downloader.download_with_cache(url)
-
-        # 2. Transcribe (optional)
-        all_captions = []
-        if transcriber.available():
-            prog("transcribe", "Transcribing audio…", 20)
-
-            def _transcribe_progress(pct: int):
-                msg = f"Transcribing… {pct}%" if pct < 100 else "Transcription done"
-                _set_task(task_id, status="processing", stage="transcribe",
-                          message=msg, percent=20 + int(pct * 0.13))
-
-            all_captions = transcriber.transcribe_video(
-                video_info["file_path"], progress_cb=_transcribe_progress
-            )
-        else:
-            prog("transcribe", "Whisper not available – skipping captions", 20)
-
-        # 3. Analyse — Gemini first, rule-based fallback
-        prog("analyze", "Asking Gemini to pick best moments…", 35)
-        if gemini.available():
-            segments = gemini.analyze(video_info, transcription=all_captions)
-            if not segments:
-                logger.info("Gemini returned 0 segments, falling back to rule-based")
-        else:
-            segments = []
-
-        if not segments:
-            prog("analyze", "Selecting best moments (rule-based)…", 38)
-            analyzer = VideoAnalyzer()
-            segments = analyzer.analyze(video_info, transcription=all_captions)
-
-        # Generate viral AI titles (best-effort)
-        ai_titles: dict = {}
-        if gemini.available() and segments:
-            try:
-                ai_titles = gemini.generate_titles(
-                    video_info.get("title", ""),
-                    segments,
-                    transcription=all_captions,
-                )
-            except Exception:
-                pass
-
-        # 4. Clip + effects + captions + music
-        music_file = _get_music_file()
-        effects_proc = VideoEffects(output_dir=SHORTS_DIR)
-        clipper = VideoClipper(output_dir=SHORTS_DIR)
-        total = len(segments)
-
-        for i, seg in enumerate(segments):
-            pct = 40 + int((i / max(total, 1)) * 55)
-            prog("clip", f"Clipping short {i + 1}/{total}…", pct)
-
-            effect_name, extra_vf = effects_proc.get_effect_filter(
-                i, seg.get("duration", 30)
-            )
-
-            caps = (
-                transcriber.clip_captions(all_captions, seg["start"], seg["end"])
-                if all_captions
-                else []
-            )
-            subs_file = transcriber.write_ass(caps) if caps else None
-
-            try:
-                out_path = clipper.clip_single(
-                    video_info["file_path"],
-                    seg["start"],
-                    seg["end"],
-                    video_info["video_id"],
-                    seg["rank"],
-                    extra_vf=extra_vf,
-                    subs_file=subs_file,
-                    music_file=music_file,
-                )
-                seg["clip_path"] = out_path
-                seg["effect"] = effect_name
-            except Exception as exc:
-                logger.error("Clip failed rank=%d: %s", seg["rank"], exc)
-                seg["clip_path"] = None
-                seg["effect"] = "none"
-
-        # 5. Build response & save history
-        prog("done", "Finalising…", 95)
-        response_shorts = []
-        for seg in segments:
-            clip_file = os.path.basename(seg.get("clip_path") or "")
-            response_shorts.append(
-                {
-                    "rank": seg["rank"],
-                    "label": seg["label"],
-                    "ai_title": ai_titles.get(seg["rank"], ""),
-                    "start": seg["start"],
-                    "end": seg["end"],
-                    "duration": seg["duration"],
-                    "score": seg["score"],
-                    "effect": seg.get("effect", "none"),
-                    "clip_file": clip_file,
-                    "download_url": f"/api/shorts/{clip_file}" if clip_file else None,
-                    "is_best": seg["rank"] == 1,
-                    "has_captions": bool(all_captions),
-                    "has_music": bool(music_file),
-                    "source": seg.get("source", "rule"),
-                }
-            )
-
-        result = {
-            "video_id": video_info["video_id"],
-            "title": video_info["title"],
-            "duration": video_info["duration"],
-            "total_shorts": len(response_shorts),
-            "shorts": response_shorts,
-        }
-
-        db.save_result(
-            video_info["video_id"],
-            video_info["title"],
-            video_info["duration"],
-            url,
-            response_shorts,
-        )
-
-        _set_task(task_id, status="done", percent=100,
-                  stage="done", message="Done!", result=result)
-
+        _run_pipeline(task_id, video_info, prog)
     except Exception as exc:
         logger.exception("Task %s failed", task_id[:8])
         _set_task(task_id, status="error", error=str(exc))
+
+
+def _process_local_task(task_id: str, file_path: str, original_name: str):
+    def prog(stage: str, message: str, percent: int):
+        _set_task(task_id, status="processing", stage=stage,
+                  message=message, percent=percent)
+        logger.info("[%s] %s – %s (%d%%)", task_id[:8], stage, message, percent)
+
+    try:
+        prog("analyse", "Reading video metadata…", 5)
+        # Use ffmpeg -i to probe duration
+        cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-i", file_path]
+        res = subprocess.run(cmd, capture_output=True)
+        stderr = res.stderr.decode(errors="replace")
+        duration = 0.0
+        m = re.search(r"Duration:\s*(\d+):(\d+):([\d.]+)", stderr)
+        if m:
+            duration = int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3))
+
+        video_id = os.path.splitext(os.path.basename(file_path))[0]
+        video_info = {
+            "video_id": video_id,
+            "title": os.path.splitext(original_name)[0],
+            "duration": duration,
+            "description": "",
+            "chapters": [],
+            "file_path": file_path,
+        }
+        _run_pipeline(task_id, video_info, prog)
+    except Exception as exc:
+        logger.exception("Task %s (local) failed", task_id[:8])
+        _set_task(task_id, status="error", error=str(exc))
+
+
+def _run_pipeline(task_id: str, video_info: dict, prog):
+    """Shared pipeline: transcribe → analyse → clip → respond."""
+    url = video_info.get("_source_url", video_info.get("title", "local"))
+
+    # 2. Transcribe (optional)
+    all_captions = []
+    if transcriber.available():
+        prog("transcribe", "Transcribing audio…", 20)
+
+        def _transcribe_progress(pct: int):
+            msg = f"Transcribing… {pct}%" if pct < 100 else "Transcription done"
+            _set_task(task_id, status="processing", stage="transcribe",
+                      message=msg, percent=20 + int(pct * 0.13))
+
+        all_captions = transcriber.transcribe_video(
+            video_info["file_path"], progress_cb=_transcribe_progress
+        )
+    else:
+        prog("transcribe", "Whisper not available – skipping captions", 20)
+
+    # 3. Analyse — Gemini first, rule-based fallback
+    prog("analyze", "Asking Gemini to pick best moments…", 35)
+    if gemini.available():
+        segments = gemini.analyze(video_info, transcription=all_captions)
+        if not segments:
+            logger.info("Gemini returned 0 segments, falling back to rule-based")
+    else:
+        segments = []
+
+    if not segments:
+        prog("analyze", "Selecting best moments (rule-based)…", 38)
+        analyzer = VideoAnalyzer()
+        segments = analyzer.analyze(video_info, transcription=all_captions)
+
+    # Generate viral AI titles (best-effort)
+    ai_titles: dict = {}
+    if gemini.available() and segments:
+        try:
+            ai_titles = gemini.generate_titles(
+                video_info.get("title", ""),
+                segments,
+                transcription=all_captions,
+            )
+        except Exception:
+            pass
+
+    # 4. Clip + effects + captions + music
+    music_file = _get_music_file()
+    effects_proc = VideoEffects(output_dir=SHORTS_DIR)
+    clipper = VideoClipper(output_dir=SHORTS_DIR)
+    total = len(segments)
+
+    for i, seg in enumerate(segments):
+        pct = 40 + int((i / max(total, 1)) * 55)
+        prog("clip", f"Clipping short {i + 1}/{total}…", pct)
+
+        effect_name, extra_vf = effects_proc.get_effect_filter(
+            i, seg.get("duration", 30)
+        )
+
+        caps = (
+            transcriber.clip_captions(all_captions, seg["start"], seg["end"])
+            if all_captions
+            else []
+        )
+        subs_file = transcriber.write_ass(caps) if caps else None
+
+        try:
+            out_path = clipper.clip_single(
+                video_info["file_path"],
+                seg["start"],
+                seg["end"],
+                video_info["video_id"],
+                seg["rank"],
+                extra_vf=extra_vf,
+                subs_file=subs_file,
+                music_file=music_file,
+            )
+            seg["clip_path"] = out_path
+            seg["effect"] = effect_name
+        except Exception as exc:
+            logger.error("Clip failed rank=%d: %s", seg["rank"], exc)
+            seg["clip_path"] = None
+            seg["effect"] = "none"
+
+    # 5. Build response & save history
+    prog("done", "Finalising…", 95)
+    response_shorts = []
+    for seg in segments:
+        clip_file = os.path.basename(seg.get("clip_path") or "")
+        response_shorts.append(
+            {
+                "rank": seg["rank"],
+                "label": seg["label"],
+                "ai_title": ai_titles.get(seg["rank"], ""),
+                "start": seg["start"],
+                "end": seg["end"],
+                "duration": seg["duration"],
+                "score": seg["score"],
+                "effect": seg.get("effect", "none"),
+                "clip_file": clip_file,
+                "download_url": f"/api/shorts/{clip_file}" if clip_file else None,
+                "is_best": seg["rank"] == 1,
+                "has_captions": bool(all_captions),
+                "has_music": bool(music_file),
+                "source": seg.get("source", "rule"),
+            }
+        )
+
+    result = {
+        "video_id": video_info["video_id"],
+        "title": video_info["title"],
+        "duration": video_info["duration"],
+        "total_shorts": len(response_shorts),
+        "shorts": response_shorts,
+    }
+
+    db.save_result(
+        video_info["video_id"],
+        video_info["title"],
+        video_info["duration"],
+        url,
+        response_shorts,
+    )
+
+    _set_task(task_id, status="done", percent=100,
+              stage="done", message="Done!", result=result)
 
 
 # ---------------------------------------------------------------------------
@@ -251,6 +290,41 @@ def process_video():
     _set_task(task_id, status="queued", stage="queued",
               message="Queued…", percent=0)
     t = threading.Thread(target=_process_task, args=(task_id, url), daemon=True)
+    t.start()
+    return jsonify({"task_id": task_id})
+
+
+@app.route("/api/upload-video", methods=["POST"])
+def upload_video():
+    """Accept a local video file upload and run the full pipeline on it."""
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+
+    f = request.files["file"]
+    if not f.filename:
+        return jsonify({"error": "Empty filename"}), 400
+
+    # Validate extension
+    allowed = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"}
+    ext = os.path.splitext(f.filename)[1].lower()
+    if ext not in allowed:
+        return jsonify({"error": f"Unsupported format. Allowed: {', '.join(allowed)}"}), 400
+
+    # Save to downloads dir with a unique ID
+    video_id = str(uuid.uuid4())[:8]
+    safe_name = f"{video_id}{ext}"
+    save_path = os.path.join(DOWNLOADS_DIR, safe_name)
+    f.save(save_path)
+
+    _cleanup_tasks()
+    task_id = str(uuid.uuid4())
+    _set_task(task_id, status="queued", stage="queued",
+              message="Queued…", percent=0)
+    t = threading.Thread(
+        target=_process_local_task,
+        args=(task_id, save_path, f.filename),
+        daemon=True,
+    )
     t.start()
     return jsonify({"task_id": task_id})
 
